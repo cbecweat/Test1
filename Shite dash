@@ -1,48 +1,52 @@
-<div class="container">
-
 <?php
 // Include authentication check and database connection
 include("auth.php");
 require('db.php');
 
+// Check if form is submitted for a specific blog post
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if(isset($_POST['comment']) && isset($_POST['blog_id'])) {
+        $comment = $_POST['comment'];
+        $blog_id = $_POST['blog_id'];
+
+        // Update the comments for the specific blog post in the database
+        $update_sql = "UPDATE blog_posts SET comments = CONCAT(IFNULL(comments, ''), 'New Comment: $comment\n') WHERE id = $blog_id";
+        if ($con->query($update_sql) === TRUE) {
+            echo "Comment added successfully.";
+        } else {
+            echo "Error adding comment: " . $con->error;
+        }
+    }
+}
+
 // Query to retrieve blogs from the database
 $sql = "SELECT * FROM blog_posts";
-$result = $con->query($sql); // Change $conn to $con here
+$result = $con->query($sql);
 
 // Check if there are any blogs
 if ($result->num_rows > 0) {
     // Output each blog
     while($row = $result->fetch_assoc()) {
-        echo "<div class='card'>";
+        echo "<div>";
         echo "<h2>" . $row["title"] . "</h2>";
         echo "<p>" . $row["content"] . "</p>";
-        
-        // Query to retrieve comments for this blog post
-        $blog_id = $row['id'];
-        $comment_sql = "SELECT * FROM comments WHERE blog_id = $blog_id";
-        $comment_result = $con->query($comment_sql);
-        
-        if ($comment_result->num_rows > 0) {
+
+        // Display existing comments
+        if (!empty($row["comments"])) {
             echo "<h3>Comments:</h3>";
-            // Output each comment
-            while($comment_row = $comment_result->fetch_assoc()) {
-                echo "<p>" . $comment_row["comment"] . "</p>";
-            }
-        } else {
-            echo "<p>No comments yet.</p>";
+            echo "<p>" . nl2br($row["comments"]) . "</p>";
         }
-        
-        // Add a form for users to submit comments
-        echo "<form action='submit_comment.php' method='post'>";
-        echo "<input type='hidden' name='blog_id' value='$blog_id'>";
-        echo "<textarea name='comment' placeholder='Enter your comment'></textarea>";
+
+        // Form to add comments
+        echo "<form method='post'>";
+        echo "<input type='hidden' name='blog_id' value='" . $row["id"] . "'>";
+        echo "<textarea name='comment' placeholder='Add your comment'></textarea>";
         echo "<input type='submit' value='Submit'>";
         echo "</form>";
-        
+
         echo "</div>";
     }
 } else {
     echo "No blogs found.";
 }
 ?>
-</div>
