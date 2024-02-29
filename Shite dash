@@ -1,0 +1,45 @@
+<?php
+// Include authentication check and database connection
+include("auth.php");
+require('db.php');
+
+// Query to retrieve blogs from the database
+$sql = "SELECT * FROM blog_posts";
+$result = $con->query($sql); // Change $conn to $con here
+
+// Check if there are any blogs
+if ($result->num_rows > 0) {
+    // Output each blog
+    while($row = $result->fetch_assoc()) {
+        echo "<div>";
+        echo "<h2>" . $row["title"] . "</h2>";
+        echo "<p>" . $row["content"] . "</p>";
+        // Display image if available
+        if (!empty($row["image_path"])) {
+            echo "<img src='" . $row["image_path"] . "' alt='Blog Image'>";
+        }
+        echo "</div>";
+    }
+} else {
+    echo "No blogs found.";
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dashboard - Secured Page</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="form">
+<p>Dashboard</p>
+<p>This is another secured page.</p>
+<a href="index.php" class="w3-bar-item w3-button">Index</a>
+<a href="blogs.php" class="w3-bar-item w3-button w3-light-grey">Blogs</a>
+<a href="profile.php" class="w3-bar-item w3-button">Profile</a>
+<a href="logout.php" class="w3-bar-item w3-button">Logout</a>
+</div>
+</body>
+</html>
