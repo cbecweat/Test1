@@ -8,39 +8,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     $title = $_POST['title'];
     $content = $_POST['content'];
 
-    // Handle image upload
-    $targetDir = "uploads/";
-    $fileName = basename($_FILES["image"]["name"]);
-    $targetFilePath = $targetDir . $fileName;
-    $fileType = pathinfo($targetFilePath, PATHINFO_EXTENSION);
+    // File upload code
+    $target_dir = "uploads/";
+    $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
+    $uploadOk = 1;
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Check if file is selected
-    if (!empty($_FILES["image"]["name"])) {
-        // Allow certain file formats
-        $allowTypes = array('jpg', 'png', 'jpeg', 'gif');
-        if (in_array($fileType, $allowTypes)) {
-            // Upload file to server
-            if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFilePath)) {
-                // Insert the blog post details into the database along with the image file path
-                $sql = "INSERT INTO blog_posts (title, content, image_path) VALUES (?, ?, ?)";
-                $stmt = $con->prepare($sql);
-                $stmt->bind_param("sss", $title, $content, $targetFilePath);
-                $stmt->execute();
-                $stmt->close();
-                // Redirect back to the dashboard page after processing
-                header("Location: dashboard.php");
-                exit();
-            } else {
-                echo "Sorry, there was an error uploading your file.";
-            }
-        } else {
-            echo 'Sorry, only JPG, JPEG, PNG, GIF files are allowed to upload.';
-        }
+    // Check if image file is a actual image or fake image
+    $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
+    if($check !== false) {
+        $uploadOk = 1;
     } else {
-        echo 'Please select an image file to upload.';
+        echo "File is not an image.";
+        $uploadOk = 0;
+    }
+
+    // Check if file already exists
+    if (file_exists($target_file)) {
+        echo "Sorry, file already exists.";
+        $uploadOk = 0;
+    }
+
+    // Check file size
+    if ($_FILES["fileToUpload"]["size"] > 500000) {
+        echo "Sorry, your file is too large.";
+        $uploadOk = 0;
+    }
+
+    // Allow certain file formats
+    if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
+        echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+        $uploadOk = 0;
+    }
+
+    // Check if $uploadOk is set to 0 by an error
+    if ($uploadOk == 0) {
+        echo "Sorry, your file was not uploaded.";
+    } else {
+        // Attempt to upload file
+        if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+            // Insert the blog post details into the database
+            $sql = "INSERT INTO blog_posts (title, content, image_path) VALUES (?, ?, ?)";
+            $stmt = $con->prepare($sql); // Change $conn to $con here
+            $stmt->bind_param("sss", $title, $content, $target_file);
+            $stmt->execute();
+            $stmt->close();
+            
+            echo "The file ". htmlspecialchars(basename($_FILES["fileToUpload"]["name"])). " has been uploaded and the blog post added.";
+        } else {
+            echo "Sorry, there was an error uploading your file.";
+        }
     }
 }
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,8 +77,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
         <input type="text" id="title" name="title" required><br><br>
         <label for="content">Content:</label><br>
         <textarea id="content" name="content" rows="5" required></textarea><br><br>
-        <label for="image">Image:</label><br>
-        <input type="file" id="image" name="image" accept="image/*" required><br><br>
+        <label for="fileToUpload">Select Image:</label><br>
+        <input type="file" name="fileToUpload" id="fileToUpload" required><br><br>
         <input type="submit" name="submit" value="Upload">
     </form>
 </body>
