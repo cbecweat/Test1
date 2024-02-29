@@ -1,3 +1,5 @@
+<div class="container">
+
 <?php
 // Include authentication check and database connection
 include("auth.php");
@@ -11,35 +13,36 @@ $result = $con->query($sql); // Change $conn to $con here
 if ($result->num_rows > 0) {
     // Output each blog
     while($row = $result->fetch_assoc()) {
-        echo "<div>";
+        echo "<div class='card'>";
         echo "<h2>" . $row["title"] . "</h2>";
         echo "<p>" . $row["content"] . "</p>";
-        // Display image if available
-        if (!empty($row["image_path"])) {
-            echo "<img src='" . $row["image_path"] . "' alt='Blog Image'>";
+        
+        // Query to retrieve comments for this blog post
+        $blog_id = $row['id'];
+        $comment_sql = "SELECT * FROM comments WHERE blog_id = $blog_id";
+        $comment_result = $con->query($comment_sql);
+        
+        if ($comment_result->num_rows > 0) {
+            echo "<h3>Comments:</h3>";
+            // Output each comment
+            while($comment_row = $comment_result->fetch_assoc()) {
+                echo "<p>" . $comment_row["comment"] . "</p>";
+            }
+        } else {
+            echo "<p>No comments yet.</p>";
         }
+        
+        // Add a form for users to submit comments
+        echo "<form action='submit_comment.php' method='post'>";
+        echo "<input type='hidden' name='blog_id' value='$blog_id'>";
+        echo "<textarea name='comment' placeholder='Enter your comment'></textarea>";
+        echo "<input type='submit' value='Submit'>";
+        echo "</form>";
+        
         echo "</div>";
     }
 } else {
     echo "No blogs found.";
 }
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Dashboard - Secured Page</title>
-<link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-<div class="form">
-<p>Dashboard</p>
-<p>This is another secured page.</p>
-<a href="index.php" class="w3-bar-item w3-button">Index</a>
-<a href="blogs.php" class="w3-bar-item w3-button w3-light-grey">Blogs</a>
-<a href="profile.php" class="w3-bar-item w3-button">Profile</a>
-<a href="logout.php" class="w3-bar-item w3-button">Logout</a>
 </div>
-</body>
-</html>
