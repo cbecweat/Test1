@@ -88,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
         $reset_msg = "Invalid email address.";
     } else {
         // Insert token into tokens table
-        $query = "INSERT INTO `tokens` (token, email, trn_date) VALUES ('$token', '$emailReset', NOW())";
+        $query = "INSERT INTO `tokens` (token, username, email, trn_date) VALUES ('$token', '$username', '$emailReset', NOW())";
         $result = mysqli_query($con, $query);
         
         if ($result) {
