@@ -81,6 +81,7 @@ $token = $_SESSION['token'];
 // Process password reset request
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
     $emailReset = mysqli_real_escape_string($con, $_POST['emailReset']);
+	
     
     // Validate email format
     if (!filter_var($emailReset, FILTER_VALIDATE_EMAIL)) {
@@ -99,8 +100,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
                 $mail->isSMTP();                            // Send using SMTP
                 $mail->Host       = 'smtp.gmail.com';       // Set the SMTP server to send through
                 $mail->SMTPAuth   = true;                   // Enable SMTP authentication
-                $mail->Username   = 'your_email@gmail.com'; // SMTP username
-                $mail->Password   = 'your_password';        // SMTP password
+                $mail->Username   = 'wadams6090@gmail.com'; // SMTP username
+                $mail->Password   = 'vytzxolpwhnsqdbf';        // SMTP password
                 $mail->SMTPSecure = 'tls';                  // Enable TLS encryption
                 $mail->Port       = 587;                    // TCP port to connect to
 
