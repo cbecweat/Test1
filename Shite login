@@ -87,10 +87,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
     if (!filter_var($emailReset, FILTER_VALIDATE_EMAIL)) {
         $reset_msg = "Invalid email address.";
     } else {
-        // Insert token into tokens table
-        $query = "INSERT INTO `tokens` (token, username, email, trn_date) VALUES ('$token', '$username', '$emailReset', NOW())";
-        $result = mysqli_query($con, $query);
-        
+        // Retrieve username associated with the provided email
+        $queryGetUsername = "SELECT username FROM users WHERE email='$emailReset'";
+        $resultGetUsername = mysqli_query($con, $queryGetUsername);
+        if ($resultGetUsername && mysqli_num_rows($resultGetUsername) == 1) {
+            $row = mysqli_fetch_assoc($resultGetUsername);
+            $username = $row['username'];
+
+            // Insert token into tokens table
+            $query = "INSERT INTO `tokens` (token, username, email, trn_date) VALUES ('$token', '$username', '$emailReset', NOW())";
+            $result = mysqli_query($con, $query);
+
         if ($result) {
             try {
                 // Initialize PHPMailer
