@@ -3,7 +3,7 @@ session_start();
 require('db.php');
 
 // If form submitted, process password reset request
-if (isset($_POST['username'], $_POST['email'], $_POST['token'], $_POST['password'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'], $_POST['email'], $_POST['token'], $_POST['password'])) {
     // Sanitize and escape user inputs
     $username = mysqli_real_escape_string($con, $_POST['username']);
     $email = mysqli_real_escape_string($con, $_POST['email']);
