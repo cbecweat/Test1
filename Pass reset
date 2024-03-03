@@ -17,6 +17,8 @@ if (isset($_REQUEST['username'])){
 	$password = stripslashes($_REQUEST['password']);
 	$password = mysqli_real_escape_string($con,$password);
 	
+	$hashed_password = hash('sha256', $password);
+	
 	$trn_date = date("Y-m-d H:i:s");
 	
 	//$query = "SELECT username, email, token FROM tokens WHERE (username = '$username' OR email = '$username' OR token = '$token')";
@@ -27,13 +29,21 @@ if (isset($_REQUEST['username'])){
 	$query1 = "SELECT username, email, token FROM tokens WHERE username = '$username' AND email = '$email' AND token = '$token'";
         $result1 = mysqli_query($con,$query1);
 		
-        if($result1){
-		$query2 = "UPDATE users SET password =('".sha256($password)."') WHERE username = '$username' AND email = '$email'"; 	
-          $result2 = mysqli_query($con,$query2); 
+       if($result1 && mysqli_num_rows($result1) == 1) {
+        // Update the password for the given username and email
+        $query2 = "UPDATE users SET password = '$hashed_password' WHERE username = '$username' AND email = '$email'";    
+        $result2 = mysqli_query($con, $query2); 
         
-
-	}
+        if ($result2) {
+            echo "<h3>Password has been reset successfully.</h3>";
+        } else {
+            echo "<h3>Failed to reset password. Please try again.</h3>";
+        }
+    } else {
+        echo "<h3>Invalid username, email, or token.</h3>";
+    }
 }
+
 ?>
 <!DOCTYPE html>
 	<html>
