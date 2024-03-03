@@ -1,85 +1,47 @@
-<?php
-// Include your database connection file here
-require('db.php');
+// Check if form is submitted
+if (isset($_POST['submit'])) {
+    $ip_address = getIpAddr();
 
-// Check if the form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
-    // Get the form data
-    $title = $_POST['title'];
-    $content = $_POST['content'];
+    // Check if there are too many failed login attempts within 30 seconds
+    $time_limit = time() - 30;
+    $query = "SELECT COUNT(*) AS total_count FROM loginlogs WHERE IpAddress='$ip_address' AND TryTime > FROM_UNIXTIME($time_limit)";
+    $result = mysqli_query($con, $query);
+    $check_login_row = mysqli_fetch_assoc($result);
+    $total_count = $check_login_row['total_count'];
 
-    // File upload code
-    $target_dir = "uploads/";
-    $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-    $uploadOk = 1;
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
-    // Check if image file is a actual image or fake image
-    $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
-    if($check !== false) {
-        $uploadOk = 1;
+    if ($total_count >= 3) {
+        $msg = "Too many failed login attempts. Please login after 30 seconds.";
     } else {
-        echo "File is not an image.";
-        $uploadOk = 0;
-    }
+        $username = mysqli_real_escape_string($con, $_POST['username']);
+        $password = mysqli_real_escape_string($con, $_POST['password']);
 
-    // Check if file already exists
-    if (file_exists($target_file)) {
-        echo "Sorry, file already exists.";
-        $uploadOk = 0;
-    }
+        // Hash the password before using it in the query
+        $hashed_password = hash('sha256', $password);
 
-    // Check file size
-    if ($_FILES["fileToUpload"]["size"] > 500000) {
-        echo "Sorry, your file is too large.";
-        $uploadOk = 0;
-    }
+        // Checking if user exists in the database
+        $query = "SELECT * FROM `users` WHERE username='$username'";
+        $result = mysqli_query($con, $query);
 
-    // Allow certain file formats
-    if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
-        echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
-        $uploadOk = 0;
-    }
+        if (mysqli_num_rows($result) == 1) {
+            $user_data = mysqli_fetch_assoc($result);
+            // Compare hashed password from the database with the provided hashed password
+            if ($hashed_password === $user_data['password']) {
+                $_SESSION['IS_LOGIN'] = 'yes';
+                $_SESSION['username'] = $username;
 
-    // Check if $uploadOk is set to 0 by an error
-    if ($uploadOk == 0) {
-        echo "Sorry, your file was not uploaded.";
-    } else {
-        // Attempt to upload file
-        if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-            // Insert the blog post details into the database
-            $sql = "INSERT INTO blog_posts (title, content, image_path) VALUES (?, ?, ?)";
-            $stmt = $con->prepare($sql); // Change $conn to $con here
-            $stmt->bind_param("sss", $title, $content, $target_file);
-            $stmt->execute();
-            $stmt->close();
-            
-            echo "The file ". htmlspecialchars(basename($_FILES["fileToUpload"]["name"])). " has been uploaded and the blog post added.";
+                // Reset login attempts for this IP
+                mysqli_query($con, "DELETE FROM loginlogs WHERE IpAddress='$ip_address'");
+
+                header("Location: index.php");
+                exit();
+            } else {
+                // Insert login attempt with timestamp
+                mysqli_query($con, "INSERT INTO loginlogs (IpAddress, TryTime) VALUES ('$ip_address', NOW())");
+
+                $msg = "Please enter valid login details.";
+            }
         } else {
-            echo "Sorry, there was an error uploading your file.";
+            $msg = "User does not exist.";
         }
     }
 }
-
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Blog</title>
-</head>
-<body>
-    <h1>Upload Blog</h1>
-    <form action="upload_blog.php" method="post" enctype="multipart/form-data">
-        <label for="title">Title:</label><br>
-        <input type="text" id="title" name="title" required><br><br>
-        <label for="content">Content:</label><br>
-        <textarea id="content" name="content" rows="5" required></textarea><br><br>
-        <label for="fileToUpload">Select Image:</label><br>
-        <input type="file" name="fileToUpload" id="fileToUpload" required><br><br>
-        <input type="submit" name="submit" value="Upload">
-    </form>
-</body>
-</html>
