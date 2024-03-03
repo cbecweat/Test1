@@ -39,9 +39,9 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_num_rows($result) == 1) {
             $user_data = mysqli_fetch_assoc($result);
-            
-            $stored_password = $user_data['password'];
-            
+			
+			$stored_password = $user_data['password'];
+			
             // Compare hashed password from the database with the provided hashed password
             if ($hashed_password === $stored_password) {
                 $_SESSION['IS_LOGIN'] = 'yes';
@@ -58,7 +58,6 @@ if (isset($_POST['submit'])) {
 
                 $msg = "Please enter valid login details.";
             }
-        
         }
     }
 }
@@ -81,7 +80,7 @@ function getIpAddr(){
     <meta charset="utf-8">
     <title>Login</title>
     <link rel="stylesheet" href="css/style.css" />
-     <style>
+	 <style>
         .error-message {
             color: red;
         }
@@ -94,11 +93,12 @@ function getIpAddr(){
         <input type="text" name="username" placeholder="Username" required />
         <input type="password" name="password" placeholder="Password" required />
         <input name="submit" type="submit" value="Login" />
-        <?php if (isset($msg)) { ?>
+		<?php if (isset($msg)) { ?>
             <div class="error-message"><?php echo $msg; ?></div>
         <?php } ?>
     </form>
     <p>Not registered yet? <a href='registration.php'>Register Here</a></p>
 </div>
+
 </body>
 </html>
