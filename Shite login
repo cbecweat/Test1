@@ -81,7 +81,6 @@ $token = $_SESSION['token'];
 // Process password reset request
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
     $emailReset = mysqli_real_escape_string($con, $_POST['emailReset']);
-	
     
     // Validate email format
     if (!filter_var($emailReset, FILTER_VALIDATE_EMAIL)) {
@@ -98,36 +97,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
             $query = "INSERT INTO `tokens` (token, username, email, trn_date) VALUES ('$token', '$username', '$emailReset', NOW())";
             $result = mysqli_query($con, $query);
 
-        if ($result) {
-            try {
-                // Initialize PHPMailer
-                $mail = new PHPMailer(true);
-                //Server settings
-                $mail->SMTPDebug = 0;                      // Enable verbose debug output
-                $mail->isSMTP();                            // Send using SMTP
-                $mail->Host       = 'smtp.gmail.com';       // Set the SMTP server to send through
-                $mail->SMTPAuth   = true;                   // Enable SMTP authentication
-                $mail->Username   = 'wadams6090@gmail.com'; // SMTP username
-                $mail->Password   = 'vytzxolpwhnsqdbf';        // SMTP password
-                $mail->SMTPSecure = 'tls';                  // Enable TLS encryption
-                $mail->Port       = 587;                    // TCP port to connect to
+            if ($result) {
+                try {
+                    // Initialize PHPMailer
+                    $mail = new PHPMailer(true);
+                    //Server settings
+                    $mail->SMTPDebug = 0;                      // Enable verbose debug output
+                    $mail->isSMTP();                            // Send using SMTP
+                    $mail->Host       = 'smtp.gmail.com';       // Set the SMTP server to send through
+                    $mail->SMTPAuth   = true;                   // Enable SMTP authentication
+                    $mail->Username   = 'wadams6090@gmail.com'; // SMTP username
+                    $mail->Password   = 'vytzxolpwhnsqdbf';        // SMTP password
+                    $mail->SMTPSecure = 'tls';                  // Enable TLS encryption
+                    $mail->Port       = 587;                    // TCP port to connect to
 
-                //Recipients
-                $mail->setFrom('your_email@gmail.com', 'Password Reset');
-                $mail->addAddress($emailReset, 'Recipient'); // Add a recipient
+                    //Recipients
+                    $mail->setFrom('your_email@gmail.com', 'Password Reset');
+                    $mail->addAddress($emailReset, 'Recipient'); // Add a recipient
 
-                //Content
-                $mail->isHTML(true);                                    // Set email format to HTML
-                $mail->Subject = 'Password Reset Token';
-                $mail->Body    = "This is your token number: <b>$token</b>.<br>Follow the link to reset your password: <a href='https://localhost/password_reset.php'>Reset Password</a>";
+                    //Content
+                    $mail->isHTML(true);                                    // Set email format to HTML
+                    $mail->Subject = 'Password Reset Token';
+                    $mail->Body    = "This is your token number: <b>$token</b>.<br>Follow the link to reset your password: <a href='https://localhost/password_reset.php'>Reset Password</a>";
 
-                $mail->send();
-                $reset_msg = "Follow the link sent to your email to reset your password.";
-            } catch (Exception $e) {
-                $reset_msg = "Your reset token could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                    $mail->send();
+                    $reset_msg = "Follow the link sent to your email to reset your password.";
+                } catch (Exception $e) {
+                    $reset_msg = "Your reset token could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                }
+            } else {
+                $reset_msg = "Your reset token could not be sent. Please try again later.";
             }
         } else {
-            $reset_msg = "Your reset token could not be sent. Please try again later.";
+            $reset_msg = "No user found with this email address.";
         }
     }
 }
@@ -163,12 +165,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
     <h2>Reset Password</h2>
     <form action="" method="post">
         <input type="text" name="emailReset" placeholder="Enter Email" required />
-        <input type="submit" name="reset_submit" value="Reset Password" />
-        <?php if (isset($reset_msg)) { ?>
-            <div class="error-message"><?php echo $reset_msg; ?></div>
-        <?php } ?>
-    </form>
-</div>
-
-</body>
-</html>
+        <input type="
