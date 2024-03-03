@@ -1,3 +1,7 @@
+<?php
+session_start();
+require('db.php');
+
 // Check if form is submitted
 if (isset($_POST['submit'])) {
     $ip_address = getIpAddr();
@@ -24,8 +28,11 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_num_rows($result) == 1) {
             $user_data = mysqli_fetch_assoc($result);
+			
+			$stored_password = $user_data['password'];
+			
             // Compare hashed password from the database with the provided hashed password
-            if ($hashed_password === $user_data['password']) {
+            if ($hashed_password === $stored_password) {
                 $_SESSION['IS_LOGIN'] = 'yes';
                 $_SESSION['username'] = $username;
 
@@ -45,3 +52,44 @@ if (isset($_POST['submit'])) {
         }
     }
 }
+
+
+// Function to get the client's IP address
+function getIpAddr(){
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])){
+        $ipAddr = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+        $ipAddr = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } else{
+        $ipAddr = $_SERVER['REMOTE_ADDR'];
+    }
+    return $ipAddr;
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="css/style.css" />
+	 <style>
+        .error-message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="form">
+    <h1>Log In</h1>
+    <form action="" method="post" name="login">
+        <input type="text" name="username" placeholder="Username" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <input name="submit" type="submit" value="Login" />
+		<?php if (isset($msg)) { ?>
+            <div class="error-message"><?php echo $msg; ?></div>
+        <?php } ?>
+    </form>
+    <p>Not registered yet? <a href='registration.php'>Register Here</a></p>
+</div>
+</body>
+</html>
