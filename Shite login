@@ -165,4 +165,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_submit'])) {
     <h2>Reset Password</h2>
     <form action="" method="post">
         <input type="text" name="emailReset" placeholder="Enter Email" required />
-        <input type="
+        <input
