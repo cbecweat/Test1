@@ -2,50 +2,53 @@
 session_start();
 require('db.php');
 
-if (isset($_REQUEST['username'])) {
-    $username = stripslashes($_REQUEST['username']);
-    $username = mysqli_real_escape_string($con, $username);
-    
-    $email = stripslashes($_REQUEST['email']);
-    $email = mysqli_real_escape_string($con, $email);
-    
-    $token = stripslashes($_REQUEST['token']);
-    $token = mysqli_real_escape_string($con, $token);
-    
-    $old_password = stripslashes($_REQUEST['old_password']);
-    $old_password = mysqli_real_escape_string($con, $old_password);
-    
-    $password = stripslashes($_REQUEST['password']);
-    $password = mysqli_real_escape_string($con, $password);
-    
-    // Fetch the hashed password, salt, and token from the database
-    $query1 = "SELECT password, salt, token FROM users WHERE username = '$username' AND email = '$email'";
+// Function to generate a random token
+function generateToken() {
+    return bin2hex(random_bytes(32));
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = mysqli_real_escape_string($con, $_POST['username']);
+    $email = mysqli_real_escape_string($con, $_POST['email']);
+    $old_password = mysqli_real_escape_string($con, $_POST['old_password']);
+    $password = mysqli_real_escape_string($con, $_POST['password']);
+    $token = generateToken(); // Generate a token
+
+    // Fetch the hashed password and salt from the database
+    $query1 = "SELECT password, salt FROM users WHERE username = '$username' AND email = '$email'";
     $result1 = mysqli_query($con, $query1);
-    
+
     if ($result1 && mysqli_num_rows($result1) == 1) {
         $user_data = mysqli_fetch_assoc($result1);
         $stored_password = $user_data['password'];
         $salt = $user_data['salt'];
-        $stored_token = $user_data['token'];
-        
+
         // Hash the old password with the existing salt
         $hashed_old_password = hash('sha256', $old_password . $salt);
-        
-        if ($stored_password === $hashed_old_password && $stored_token === $token) {
-            // Hash the new password with the existing salt
-            $hashed_password = hash('sha256', $password . $salt);
-            
-            // Update the password in the database
-            $query2 = "UPDATE users SET password = '$hashed_password' WHERE username = '$username' AND email = '$email'";
+
+        // Check if old password matches the stored password
+        if ($stored_password === $hashed_old_password) {
+            // Insert the token into the database
+            $query2 = "INSERT INTO `tokens` (username, email, token, old_password) VALUES ('$username', '$email', '$token', '$hashed_old_password')";
             $result2 = mysqli_query($con, $query2);
-            
+
             if ($result2) {
-                echo "<h3>Password has been reset successfully.</h3>";
+                // Send the token to the user's email
+                $to = $email;
+                $subject = 'Password Reset Token';
+                $message = "Your password reset token is: $token";
+                $headers = 'From: your_email@example.com' . "\r\n" .
+                            'Reply-To: your_email@example.com' . "\r\n" .
+                            'X-Mailer: PHP/' . phpversion();
+
+                // Send email
+                mail($to, $subject, $message, $headers);
+                echo "<h3>Password reset token has been sent to your email.</h3>";
             } else {
-                echo "<h3>Failed to reset password. Please try again.</h3>";
+                echo "<h3>Failed to generate token. Please try again.</h3>";
             }
         } else {
-            echo "<h3>Invalid old password or token.</h3>";
+            echo "<h3>Invalid old password.</h3>";
         }
     } else {
         echo "<h3>Invalid username or email.</h3>";
@@ -64,7 +67,6 @@ if (isset($_REQUEST['username'])) {
         <p>Enter details to reset password</p>
         Username: <input type="text" name="username"><br>
         Email: <input type="text" name="email"><br>
-        Token No: <input type="text" name="token"><br>
         Old Password: <input type="password" name="old_password"><br>
         New Password: <input type="password" name="password"><br>
         <input type="submit">
