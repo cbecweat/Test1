@@ -18,16 +18,49 @@ function generateToken() {
     return bin2hex(random_bytes(32));
 }
 
-// Function to get the client's IP address
-function getIpAddr(){
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])){
-        $ipAddr = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
-        $ipAddr = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else{
-        $ipAddr = $_SERVER['REMOTE_ADDR'];
+// If email is submitted for password reset
+if (isset($_POST['email'])) {
+    $email = mysqli_real_escape_string($con, $_POST['email']);
+
+    // Generate a token
+    $token = generateToken();
+
+    // Insert the token into the database
+    $query = "INSERT INTO `tokens` (email, token) VALUES ('$email', '$token')";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        // Send email with the token
+        $mail = new PHPMailer(true);
+
+        try {
+            //Server settings
+            $mail->SMTPDebug = 0;                      //Enable verbose debug output
+            $mail->isSMTP();                                            //Send using SMTP
+            $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
+            $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
+            $mail->Username   = 'wadams6090@gmail.com';                     //SMTP username
+            $mail->Password   = 'vytzxolpwhnsqdbf';                               //SMTP password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;            //Enable implicit TLS encryption
+            $mail->Port       = 587;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+
+            //Recipients
+            $mail->setFrom('your_email@gmail.com', 'Password Reset');
+            $mail->addAddress($email);     //Add a recipient
+
+            //Content
+            $mail->isHTML(true);                                  //Set email format to HTML
+            $mail->Subject = 'Password Reset Token';
+            $mail->Body    = "Here is your password reset token: <b>$token</b>";
+
+            $mail->send();
+            $msg = "Password reset token has been sent to your email.";
+        } catch (Exception $e) {
+            $msg = "Error: Password reset token could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        }
+    } else {
+        $msg = "Error: Failed to generate token.";
     }
-    return $ipAddr;
 }
 
 // Check if form is submitted
@@ -81,49 +114,16 @@ if (isset($_POST['submit'])) {
     }
 }
 
-// If email is submitted for password reset
-if (isset($_POST['email'])) {
-    $email = mysqli_real_escape_string($con, $_POST['email']);
-
-    // Generate a token
-    $token = generateToken();
-
-    // Insert the token into the database
-    $query = "INSERT INTO `tokens` (email, token) VALUES ('$email', '$token')";
-    $result = mysqli_query($con, $query);
-
-    if ($result) {
-        // Send email with the token
-        $mail = new PHPMailer(true);
-
-        try {
-            //Server settings
-            $mail->SMTPDebug = 0;                      //Enable verbose debug output
-            $mail->isSMTP();                                            //Send using SMTP
-            $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
-            $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-            $mail->Username   = 'wadams6090@gmail.com';                     //SMTP username
-            $mail->Password   =  'vytzxolpwhnsqdbf';                               //SMTP password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;            //Enable implicit TLS encryption
-            $mail->Port       = 587;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
-
-            //Recipients
-            $mail->setFrom('your_email@gmail.com', 'Password Reset');
-            $mail->addAddress($email);     //Add a recipient
-
-            //Content
-            $mail->isHTML(true);                                  //Set email format to HTML
-            $mail->Subject = 'Password Reset Token';
-            $mail->Body    = "Here is your password reset token: <b>$token</b>";
-
-            $mail->send();
-            $msg = "Password reset token has been sent to your email.";
-        } catch (Exception $e) {
-            $msg = "Error: Password reset token could not be sent. Mailer Error: {$mail->ErrorInfo}";
-        }
-    } else {
-        $msg = "Error: Failed to generate token.";
+// Function to get the client's IP address
+function getIpAddr(){
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])){
+        $ipAddr = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+        $ipAddr = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } else{
+        $ipAddr = $_SERVER['REMOTE_ADDR'];
     }
+    return $ipAddr;
 }
 ?>
 <!DOCTYPE html>
@@ -151,7 +151,7 @@ if (isset($_POST['email'])) {
     </form>
     <form action="" method="post" name="forgot_password">
         <input type="text" name="email" placeholder="Email" required />
-        <input name="reset_password" type="submit" value="Forgot Password" />
+        <input name="forgot_password" type="submit" value="Forgot Password" />
     </form>
     <p>Not registered yet? <a href='registration.php'>Register Here</a></p>
 </div>
