@@ -1,2 +1,2 @@
-
-Fatal error: Uncaught mysqli_sql_exception: Unknown column 'token' in 'field list' in C:\xampp\htdocs\password_reset.php:23 Stack trace: #0 C:\xampp\htdocs\password_reset.php(23): mysqli_query(Object(mysqli), 'SELECT password...') #1 {main} thrown in C:\xampp\htdocs\password_reset.php on line 23
+// Fetch the hashed password, salt, and token from the database
+$query1 = "SELECT u.password, u.salt, t.token FROM users u JOIN tokens t ON u.username = t.username WHERE u.username = '$username' AND u.email = '$email'";
