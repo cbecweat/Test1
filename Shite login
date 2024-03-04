@@ -38,8 +38,8 @@ if (isset($_POST['submit'])) {
             $user_data = mysqli_fetch_assoc($result);
             $stored_password = $user_data['password'];
             $salt = $user_data['salt'];
-			
-			// Hash the password with salt
+            
+            // Hash the provided password with the stored salt
             $hashed_password = hash('sha256', $password . $salt);
 
             // Compare hashed password from the database with the provided hashed password
@@ -85,8 +85,10 @@ $token = $_SESSION['token'];
 // If the form for generating reset token is submitted
 if (isset($_POST['reset_submit'])) {
     $email = mysqli_real_escape_string($con, $_POST['email']);
-	$username = mysqli_real_escape_string($con, $_POST['username']);
-	
+    $username = mysqli_real_escape_string($con, $_POST['username']);
+    
+    // Use the same token generated above
+    $token = $_SESSION['token'];
 
     // Insert the token and email into the database
     $trn_date = date("Y-m-d H:i:s");
@@ -140,12 +142,7 @@ if (isset($_POST['reset_submit'])) {
 <div class="form">
     <h1>Log In</h1>
     <form action="" method="post" name="login">
-        <input type="text" name="username" placeholder="Username" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <input name="submit" type="submit" value="Login" />
-        <?php if (isset($msg)) { ?>
-            <div class="error-message"><?php echo $msg; ?></div>
-        <?php } ?>
+        <!-- Your login form goes here -->
     </form>
     <p>Not registered yet? <a href='registration.php'>Register Here</a></p>
 </div>
@@ -153,7 +150,7 @@ if (isset($_POST['reset_submit'])) {
 <div class="form">
     <h1>Reset Password</h1>
     <form action="" method="post">
-		<input type="text" name="username" placeholder="Username" required><br>
+        <input type="text" name="username" placeholder="Username" required><br>
         <input type="text" name="email" placeholder="Email" required><br>
         <input type="submit" name="reset_submit" value="Generate Reset Token">
     </form>
