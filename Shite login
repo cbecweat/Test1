@@ -15,6 +15,7 @@ require 'vendor/autoload.php';
 
 // Check if form is submitted
 if (isset($_POST['submit'])) {
+    // Login functionality
     $ip_address = getIpAddr();
 
     // Check if there are too many failed login attempts within 30 seconds
@@ -39,7 +40,7 @@ if (isset($_POST['submit'])) {
             $stored_password = $user_data['password'];
             $salt = $user_data['salt'];
             
-            // Hash the provided password with the stored salt
+            // Hash the password with salt
             $hashed_password = hash('sha256', $password . $salt);
 
             // Compare hashed password from the database with the provided hashed password
@@ -87,7 +88,7 @@ if (isset($_POST['reset_submit'])) {
     $email = mysqli_real_escape_string($con, $_POST['email']);
     $username = mysqli_real_escape_string($con, $_POST['username']);
     
-    // Use the same token generated above
+    // Use the same token generated when the page was loaded
     $token = $_SESSION['token'];
 
     // Insert the token and email into the database
