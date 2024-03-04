@@ -19,7 +19,8 @@ if (isset($_REQUEST['username'])) {
     $password = mysqli_real_escape_string($con, $password);
     
     // Fetch the hashed password, salt, and token from the database
-    $query1 = "SELECT password, salt, token FROM users WHERE username = '$username' AND email = '$email'";
+$query1 = "SELECT u.password, u.salt, t.token FROM users u JOIN tokens t ON u.username = t.username WHERE u.username = '$username' AND u.email = '$email'";
+
     $result1 = mysqli_query($con, $query1);
     
     if ($result1 && mysqli_num_rows($result1) == 1) {
