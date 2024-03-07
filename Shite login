@@ -1,48 +1,19 @@
-if (isset($_POST['submit'])) {
-    $ip_address = getIpAddr();
-
-    // Check if there are too many failed login attempts within 30 seconds
-    $time_limit = time() - 30;
-    $query = "SELECT COUNT(*) AS total_count FROM loginlogs WHERE IpAddress='$ip_address' AND TryTime > FROM_UNIXTIME($time_limit)";
-    $result = mysqli_query($con, $query);
-    $check_login_row = mysqli_fetch_assoc($result);
-    $total_count = $check_login_row['total_count'];
-
-    if ($total_count >= 3) {
-        $msg = "Too many failed login attempts. Please login after 30 seconds.";
-    } else {
-        $username = mysqli_real_escape_string($con, $_POST['username']);
-        $password = mysqli_real_escape_string($con, $_POST['password']);
-
-        $query = "SELECT salt FROM `users` WHERE username='$username'";
+// Retrieve the salt for the user from the database
+        $query = "SELECT * FROM `users` WHERE username='$username' OR email='$username'";
         $result = mysqli_query($con, $query);
-        $row = mysqli_fetch_assoc($result);
-        
-        if ($row !== null) {
-            $salt = $row['salt'];
-            $hashed_password = hash('sha256', $password . $salt);
-            
-            // Checking if user exists in the database and password matches
-            $query = "SELECT * FROM `users` WHERE username='$username' AND password='$hashed_password'";
-            $result = mysqli_query($con, $query);
+        $user = mysqli_fetch_assoc($result);
 
-            if (mysqli_num_rows($result) == 1) {
+        if ($user) {
+            // Extract salt from the user data
+            $salt = $user['salt'];
+
+            // Combine retrieved salt with the entered password
+            $password_with_salt = $password . $salt;
+
+            // Hash the password with salt
+            $hashed_password = hash('sha256', $password_with_salt);
+
+            // Check if the hashed password matches the stored hashed password
+            if ($hashed_password === $user['password']) {
                 $_SESSION['IS_LOGIN'] = 'yes';
                 $_SESSION['username'] = $username;
-                
-                // Reset login attempts for this IP
-                mysqli_query($con, "DELETE FROM loginlogs WHERE IpAddress='$ip_address'");
-                
-                header("Location: index.php");
-                exit();
-            } else {
-                // Insert login attempt with timestamp
-                mysqli_query($con, "INSERT INTO loginlogs (IpAddress, TryTime) VALUES ('$ip_address', NOW())");
-                
-                $msg = "Please enter valid login details.";
-            }
-        } else {
-            $msg = "User not found.";
-        }
-    }
-}
