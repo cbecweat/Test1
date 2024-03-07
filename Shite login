@@ -35,15 +35,8 @@ if (isset($_POST['submit'])) {
         $hashed_password = hash('sha256', $password);
 
         // Checking if user exists in the database and password matches
-		$query = "SELECT *FROM `users` WHERE username=? AND password=?";
-		$stmt = mysqli_prepare($con, $query);
-		mysqli_stmt_bind_param($stmt, "ss", $username, $hashed_password);
-		mysqli_stmt_execute($stmt);
-		$result = mysqli_stmt_get_result($stmt);
-		
-		
-     // $query = "SELECT * FROM `users` WHERE username='$username' AND password='$hashed_password'";
-       //result = mysqli_query($con, $query);
+        $query = "SELECT * FROM `users` WHERE username='$username' AND password='$hashed_password'";
+        $result = mysqli_query($con, $query);
 
         if (mysqli_num_rows($result) == 1) {
             $_SESSION['IS_LOGIN'] = 'yes';
@@ -121,19 +114,15 @@ if (isset($_POST['username'])){
     $email = mysqli_real_escape_string($con,$email);
     $trn_date = date("Y-m-d H:i:s");
     
-        $query = "INSERT into `tokens` (username, token, email, trn_date) VALUES (?, ?, ?, ?,)";
-		$stmt = mysqli_prepare($con, $query);
-		if ($stmt) {
-		mysqli_stmt_bind_param($stmt, "ssss", $username, $token, $email, $trn_date);
-		mysqli_stmt_execute($stmt);
-		$result = mysqli_stmt_get_result($stmt);
+        $query = "INSERT into `tokens` (username, token, email, trn_date) VALUES ('$username', '$token', '$email', '$trn_date')";
+        $result = mysqli_query($con,$query);
         if($result){
-            echo "<div class='form'><h3>Your reset token has been sent.";
+            echo "<div class='form'>
+<h3>Your reset token has been sent.";
         }
     }else{
-        echo "Error Preparing statement: " . mysqli_error(con);
+        echo "";
     }
-}
 ?>
 
 
@@ -195,15 +184,3 @@ try {
 session_unset();
 
 ?>
-
-
-
-
-
-
-
-
-
-
-
-Fatal error: Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')' at line 1 in C:\xampp\htdocs\login.php:125 Stack trace: #0 C:\xampp\htdocs\login.php(125): mysqli_prepare(Object(mysqli), 'INSERT into `to...') #1 {main} thrown in C:\xampp\htdocs\login.php on line 125
