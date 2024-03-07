@@ -20,18 +20,23 @@ if (isset($_REQUEST['username'])){
 	$password = mysqli_real_escape_string($con,$password);
 	
 	// Generates a random salt
-	$salt = bin2hex(random_bytes(16));
-	
+	$salt = bin2hex(random_bytes(32));
 	$hashed_password = hash('sha256', $password . $salt);
 	
 	$trn_date = date("Y-m-d H:i:s");
-        $query = "INSERT into `users` (username, password, salt, email, trn_date)
+         $query = "INSERT into `users` (username, password, salt, email, trn_date)
 VALUES ('$username', '$hashed_password', '$salt', '$email', '$trn_date')";
         $result = mysqli_query($con,$query);
         if($result){
             echo "<div class='form'>
 <h3>You are registered successfully.</h3>
 <br/>Click here to <a href='login.php'>Login</a></div>";
+
+	// Adds the php entitie that helps to prevent XSS attacks
+	htmlentities($username, ENT_QUOTES, 'UTF-8');
+	htmlentities($email, ENT_QUOTES, 'UTF-8');
+	htmlentities($password, ENT_QUOTES, 'UTF-8');
+		
         }
     }else{
 ?>
