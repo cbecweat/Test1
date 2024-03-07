@@ -1,5 +1,7 @@
 <?php
-error_reporting(0);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 require('db.php');
 use PHPMailer\PHPMailer\PHPMailer;
@@ -10,6 +12,8 @@ require 'phpmailer/src/Exception.php';
 require 'phpmailer/src/PHPMailer.php';
 require 'phpmailer/src/SMTP.php';
 require 'vendor/autoload.php';
+
+$msg = ''; // Initialize $msg variable
 
 if (isset($_POST['submit'])) {
     $ip_address = getIpAddr();
@@ -50,7 +54,7 @@ if (isset($_POST['submit'])) {
             // Insert login attempt with timestamp
             mysqli_query($con, "INSERT INTO loginlogs (IpAddress, TryTime) VALUES ('$ip_address', NOW())");
 
-            $msg = "Please enter valid login details.";
+            $msg = "Please enter valid login details."; // Display this message only when login attempt fails
         }
     }
 }
@@ -67,6 +71,7 @@ function getIpAddr(){
     return $ipAddr;
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -86,44 +91,12 @@ function getIpAddr(){
         <input type="text" name="username" placeholder="Username" required />
         <input type="password" name="password" placeholder="Password" required />
         <input name="submit" type="submit" value="Login" />
-        <?php if (isset($msg)) { ?>
+        <?php if (!empty($msg)) { ?>
             <div class="error-message"><?php echo $msg; ?></div>
         <?php } ?>
     </form>
     <p>Not registered yet? <a href='registration.php'>Register Here</a></p>
 </div>
-
-<?php
-
-if (empty($_SESSION['token'])) {
-    $_SESSION['token'] = bin2hex(random_bytes(32));
-}
-$token = $_SESSION['token']
-
-?>
-
-<?php
-if (isset($_POST['username'])){
-        // removes backslashes
-    $username = stripslashes($_POST['username']);
-        //escapes special characters in a string
-    $username = mysqli_real_escape_string($con,$username); 
-    
-    $email = isset($_POST['email']) ? stripslashes($_POST['email']) : ''; // Fix to handle undefined index
-    $email = mysqli_real_escape_string($con,$email);
-    $trn_date = date("Y-m-d H:i:s");
-    
-        $query = "INSERT into `tokens` (username, token, email, trn_date) VALUES ('$username', '$token', '$email', '$trn_date')";
-        $result = mysqli_query($con,$query);
-        if($result){
-            echo "<div class='form'>
-<h3>Your reset token has been sent.";
-        }
-    }else{
-        echo "";
-    }
-?>
-
 
 <div class="form">
     <h1>Reset Password</h1>
@@ -132,53 +105,7 @@ if (isset($_POST['username'])){
         <input type="text" name="email" placeholder="Email" required><br>
         <input type="submit" name="reset_submit" value="Submit">
     </form>
+</div>
 
 </body>
 </html>
-<?php
-     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  // collect value of input field
-  $emailReset = isset($_POST['email']) ? $_POST['email'] : ''; // Fix to handle undefined index
-  if (empty($emailReset)) {
-    echo "Name is empty";
-  } else {
-    echo $emailReset;
-  }
-}
-
-?>
-
-<?php
-$mail = new PHPMailer(true);
-
-try {
-    //Server settings
-    $mail->SMTPDebug = 0;                                        //Enable verbose debug output
-    $mail->isSMTP();                                            //Send using SMTP
-    $mail->Host       = 'smtp.gmail.com';                    //Set the SMTP server to send through
-    $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-    $mail->Username   = 'wadams6090@gmail.com';                     //SMTP username
-    $mail->Password   = 'vytzxolpwhnsqdbf';                               //SMTP password
-    $mail->SMTPSecure = 'PHPMailer::ENCRYPTION_STARTTLS';         //Enable implicit TLS encryption
-    $mail->Port       = 587;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
-
-    //Recipient
-    $mail->setFrom('wadams6090@gmail.com', 'Password Reset');
-    $mail->addAddress("$emailReset", 'User1');                       
-    $mail->addReplyTo('resetlink10@gmail.com', 'Password Reset');
-
-    //Content
-    $mail->isHTML(true);                                        //Set email format to HTML
-    $mail->Subject = 'Password reset';
-    $mail->Body    = "This is your token number <b>$token</b><h3>https://localhost/password_reset.php</h3>";
-    
-
-    $mail->send();
-    echo '<h3>Follow the link to reset your password.</h3>';
-} catch (Exception $e) {
-    echo "";
-}
-
-session_unset();
-
-?>
