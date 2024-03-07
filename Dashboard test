@@ -1,4 +1,9 @@
-Warning: move_uploaded_file(uploads/cybersecurity.jpg): Failed to open stream: No such file or directory in C:\xampp\htdocs\upload_blog.php on line 26
-
-Warning: move_uploaded_file(): Unable to move "C:\xampp\tmp\php895.tmp" to "uploads/cybersecurity.jpg" in C:\xampp\htdocs\upload_blog.php on line 26
-Sorry, there was an error uploading your file.
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `password` varchar(256) NOT NULL,
+  `salt` varchar(64) NOT NULL,
+  `trn_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
