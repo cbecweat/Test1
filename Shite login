@@ -51,9 +51,6 @@ if (isset($_POST['submit'])) {
             header("Location: index.php");
             exit();
         } else {
-            // Insert login attempt with timestamp
-            mysqli_query($con, "INSERT INTO loginlogs (IpAddress, TryTime) VALUES ('$ip_address', NOW())");
-
             $msg = "Please enter valid login details."; // Display this message only when login attempt fails
         }
     }
@@ -91,7 +88,7 @@ function getIpAddr(){
         <input type="text" name="username" placeholder="Username" required />
         <input type="password" name="password" placeholder="Password" required />
         <input name="submit" type="submit" value="Login" />
-        <?php if (!empty($msg)) { ?>
+        <?php if (!empty($msg) && $total_count < 3) { ?>
             <div class="error-message"><?php echo $msg; ?></div>
         <?php } ?>
     </form>
