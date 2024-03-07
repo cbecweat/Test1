@@ -1,1 +1,24 @@
-Fatal error: Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')' at line 1 in C:\xampp\htdocs\login.php:125 Stack trace: #0 C:\xampp\htdocs\login.php(125): mysqli_prepare(Object(mysqli), 'INSERT into `to...') #1 {main} thrown in C:\xampp\htdocs\login.php on line 125
+<?php
+if (isset($_POST['username'])){
+        // removes backslashes
+    $username = stripslashes($_POST['username']);
+        //escapes special characters in a string
+    $username = mysqli_real_escape_string($con,$username); 
+    
+    $email = isset($_POST['email']) ? stripslashes($_POST['email']) : ''; // Fix to handle undefined index
+    $email = mysqli_real_escape_string($con,$email);
+    $trn_date = date("Y-m-d H:i:s");
+    
+        $query = "INSERT into `tokens` (username, token, email, trn_date) VALUES (?, ?, ?, ?,)";
+		$stmt = mysqli_prepare($con, $query);
+		if ($stmt) {
+		mysqli_stmt_bind_param($stmt, "ssss", $username, $token, $email, $trn_date);
+		mysqli_stmt_execute($stmt);
+		$result = mysqli_stmt_get_result($stmt);
+        if($result){
+            echo "<div class='form'><h3>Your reset token has been sent.";
+        }
+    }else{
+        echo "Error Preparing statement: " . mysqli_error(con);
+    }
+?>
