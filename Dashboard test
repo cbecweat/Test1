@@ -1,9 +1,1 @@
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(50) NOT NULL,
-  `password` varchar(256) NOT NULL,
-  `salt` varchar(64) NOT NULL,
-  `trn_date` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+Fatal error: Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ''users' WHERE username='con'' at line 1 in C:\xampp\htdocs\login.php:33 Stack trace: #0 C:\xampp\htdocs\login.php(33): mysqli_query(Object(mysqli), 'SELECT salt fro...') #1 {main} thrown in C:\xampp\htdocs\login.php on line 33
