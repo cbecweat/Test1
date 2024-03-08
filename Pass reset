@@ -1,13 +1,64 @@
-$username = htmlspecialchars($_POST['username']);
-$username = mysqli_real_escape_string($con, $username);
+<?php
+error_reporting(0);
+session_start();
+require('db.php');
 
-$email = htmlspecialchars($_POST['email']);
-$email = mysqli_real_escape_string($con, $email);
+if (isset($_POST['username'], $_POST['email'], $_POST['token'], $_POST['password'])) {
+    $username = mysqli_real_escape_string($con, $_POST['username']);
+    $email = mysqli_real_escape_string($con, $_POST['email']);
+    $token = mysqli_real_escape_string($con, $_POST['token']);
+    $password = mysqli_real_escape_string($con, $_POST['password']);
 
-$token = htmlspecialchars($_POST['token']);
-$token = mysqli_real_escape_string($con, $token);
+    // Retrieve user data including salt
+    $query = "SELECT username, salt FROM users WHERE username = '$username' AND email = '$email'";
+    $result = mysqli_query($con, $query);
 
-$password = htmlspecialchars($_POST['password']);
-$password = mysqli_real_escape_string($con, $password);
+    if (mysqli_num_rows($result) == 1) {
+        $row = mysqli_fetch_assoc($result);
+        $user_salt = $row['salt'];
+        $hashed_password = hash('sha256', $password . $user_salt); // Hash password with user's salt
 
-$hashed_password = hash('sha256', $password);
+        // Check if the token is valid
+        $query = "SELECT username FROM tokens WHERE username = '$username' AND email = '$email' AND token = '$token'";
+        $result = mysqli_query($con, $query);
+
+        if (mysqli_num_rows($result) == 1) {
+            // Update the user's password
+            $update_query = "UPDATE users SET password = '$hashed_password' WHERE username = '$username' AND email = '$email'";
+            $update_result = mysqli_query($con, $update_query);
+
+            if ($update_result) {
+                echo "<h3>Password has been reset successfully.</h3>";
+                // Delete the token after successful password reset
+                $delete_query = "DELETE FROM tokens WHERE username = '$username' AND email = '$email' AND token = '$token'";
+                mysqli_query($con, $delete_query);
+            } else {
+                echo "<h3>Failed to reset password. Please try again.</h3>";
+            }
+        } else {
+            echo "<h3>Invalid token. Please request a new password reset.</h3>";
+        }
+    } else {
+        echo "<h3>User not found.</h3>";
+    }
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Password reset</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<form action="reset_password.php" method="post">
+    <p>Enter details to reset password</p>
+    Username: <input type="text" name="username" required><br>
+    Email: <input type="email" name="email" required><br>
+    Token No: <input type="text" name="token" required><br>
+    New Password: <input type="password" name="password" required><br>
+    <input type="submit" value="Reset Password">
+</form>
+<a href="login.php">Go back to login</a>
+</body>
+</html>
